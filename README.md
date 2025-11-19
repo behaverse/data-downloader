@@ -54,15 +54,15 @@ The Behaverse Data Downloader simplifies the process of downloading data via the
 ### Usage
 
 **First, activate your virtual environment:**
+
 ```bash
 source .venv/bin/activate  # On Linux/Mac
 # or
 .venv\Scripts\activate     # On Windows
 ```
 
-## Command Line Interface (CLI)
 
-```bash
+## Command Line Interface (CLI)
 
 
 ## CLI Commands
@@ -163,42 +163,9 @@ bdd verify demo-study
 
 
 
-
-### Command Design Philosophy
-
-**Modern Subcommand Architecture:**
-- Uses verb-noun structure: `bdd download study` (action first, target second)
-- Follows industry standards like git, docker, kubectl
-- Global options use flags: `--config`, `--version`
-- Command-specific options use flags: `--incremental` for download
-- Clear, intuitive: reads like natural language
-
-**Why `--config` is optional (not useless):**
-- **Auto-detection works 95% of the time**: `bdd download demo-study` finds `study_configs/demo-study.json`
-- **Explicit needed for edge cases**: 
-  - Config file named differently than study: `bdd --config my-custom-config download actual-study-name`
-  - Testing with different configs: `bdd --config test-api-key list-studies`
-  - Multiple studies sharing one config: `bdd --config shared-key download study1`
-
-**Design Principles:**
-1. **Sensible defaults** - Most common usage should be simplest
-2. **Explicit when needed** - Advanced usage available but optional  
-3. **Industry standards** - Follow conventions (--help, --version, etc.)
-4. **Progressive disclosure** - Simple commands first, complexity optional
-
-
-
-
-
-```
-
-
-
-
-
 ### Configuration System
 
-The application now supports **per-study configuration files**, allowing each study/dataset to have its own:
+The application supports **per-study configuration files**, allowing each study/dataset to have its own:
 - API key
 - Storage settings (format, organization mode)
 - Download settings (page size, concurrent requests)
@@ -209,12 +176,6 @@ The application now supports **per-study configuration files**, allowing each st
 - **`settings/default_config.json`** - Fallback config used when no study-specific config exists
 - **`study_configs/{study-name}.json`** - Study-specific configuration files (one per study/dataset)
 
-**Note:** All config files use environment variable references like `${BEHAVERSE_API_KEY_DEMO_STUDY}` instead of actual API keys, making them safe to commit to version control.
-
-**Key Difference:**
-- `config_template.json` - Has empty `study_name` and `api_key` fields (used as blueprint)
-- `default_config.json` - Generic fallback (no `study_name` field, used when study config doesn't exist)
-- Study configs (e.g., `demo-study.json`) - Have specific `study_name` and `api_key` for that study
 
 #### Creating Study Configs
 
@@ -289,13 +250,13 @@ The CLI automatically selects the appropriate config:
 - If downloading/querying a study, checks for `study_configs/{study-name}.json`
 - Falls back to `settings/default_config.json` if no study-specific config exists
 
-```
 
 
 
 
 
 #### Programmatic Usage
+
 ```python
 from behaverse_data_downloader.manager import BehaverseDataDownloader
 
@@ -349,26 +310,14 @@ behaverse-data-downloader/
 │   ├── test_core_functionality.py
 │   ├── test_api.py
 │   └── test_dataset_api_keys.py
-├── scripts/                  # Utility scripts
-│   ├── build.sh             # Build executable
-│   └── run.sh               # Run helper
-├── docs/                     # Documentation
-├── archive/                  # Archived/experimental code
-│   ├── gui_experiments/     # GUI framework experiments
-│   ├── gui_module/          # Original GUI (for future use)
-│   └── old_scripts/         # Deprecated scripts
 ├── .env                      # Environment variables (create from .env.example)
 ├── .env.example             # Example environment file
 ├── requirements.txt         # Python dependencies
 ├── setup.py                 # Package setup
 ├── main.py                  # CLI entry point
-├── cli_examples.sh          # CLI usage examples
-├── PROJECT_STRUCTURE.md     # Detailed structure documentation
-├── CLEANUP_SUMMARY.md       # Cleanup details
 └── README.md                # This file
 ```
 
-**See `PROJECT_STRUCTURE.md` for detailed module documentation.**
 
 
 ## How Downloaded Data is Organized
@@ -448,6 +397,7 @@ The application can be configured via:
 **API keys are now managed via environment variables for security.** This keeps sensitive credentials out of version control.
 
 Create a `.env` file (copy from `.env.example`):
+
 ```bash
 # Default API key for all studies
 BEHAVERSE_API_KEY=your_default_api_key_here
@@ -455,7 +405,6 @@ BEHAVERSE_API_KEY=your_default_api_key_here
 # Study-specific API keys (optional, takes precedence)
 # Format: BEHAVERSE_API_KEY_<STUDY_NAME> where STUDY_NAME is uppercase with hyphens replaced by underscores
 BEHAVERSE_API_KEY_DEMO_STUDY=your_demo_study_key
-BEHAVERSE_API_KEY_TG_RELEASE_TEST=your_tg_release_test_key
 ```
 
 **Priority order for API keys:**
@@ -466,11 +415,11 @@ BEHAVERSE_API_KEY_TG_RELEASE_TEST=your_tg_release_test_key
 
 **Important:** The `.env` file is gitignored and should never be committed to version control.
 
-### Configuration File (Optional)
 
-**Note:** With the new .env-based system, configuration files are optional. You can manage everything via environment variables.
+### Configuration File
 
 If you need custom settings per study, edit `settings/default_config.json`:
+
 ```json
 {
   "api": {
@@ -484,8 +433,6 @@ If you need custom settings per study, edit `settings/default_config.json`:
   }
 }
 ```
-
-**For study-specific configs**, see the [Configuration](#configuration) section below.
 
 
 ## Features
@@ -504,134 +451,8 @@ If you need custom settings per study, edit `settings/default_config.json`:
 
 ### Planned Features
 
-- Data organization by user-id
 - Data export (ZIP per study)
 - Volume estimation (number of events, dataset size)
-- Data exploration tools
-- Event search and filtering
 - Data quality checks
-- GUI (after core features are complete)
-
-
-
-## Development
-
-### Running Tests
-```bash
-# Run core functionality tests
-python tests/test_core_functionality.py
-
-# Run API tests
-python tests/test_api.py
-
-# Run all tests with pytest (if installed)
-pytest tests/
-
-# Verify setup
-python tests/verify_setup.py
-```
-
-### Building Executable
-```bash
-./scripts/build.sh
-```
-
-### Project Organization
-
-This project follows professional Python development standards:
-
-- **Clean Package Structure** - Proper Python package with `__init__.py` files
-- **Separation of Concerns** - API, storage, download, and manager logic separated
-- **Modular Design** - Easy to extend or replace components
-- **Type Hints** - Type annotation support throughout
-- **Error Handling** - Comprehensive exception handling
-- **Testing** - Structured test framework
-- **Documentation** - Extensive inline and external documentation
-
-### Code Organization
-
-- `behaverse_data_downloader/manager.py` - Main orchestrator
-- `behaverse_data_downloader/api/client.py` - API communication
-- `behaverse_data_downloader/storage/manager.py` - Data persistence
-- `behaverse_data_downloader/downloader/manager.py` - Download control
-
-Each module is focused and has a single responsibility.
-
-
-## Testing
-
-The project includes comprehensive tests:
-
-- `test_core_functionality.py` - Tests all core features
-- `test_api.py` - Tests API client functionality  
-- `test_dataset_api_keys.py` - Tests dataset-specific API keys
-- `verify_setup.py` - Verifies installation and setup
-
-Run tests before making changes to ensure everything works correctly.
-
-
-## Troubleshooting
-
-### API Connection Issues
-```bash
-# Test your connection
-python main.py --test-connection
-
-# Check your API key in .env file
-cat .env
-```
-
-### Import Errors
-```bash
-# Make sure dependencies are installed
-pip install -r requirements.txt
-```
-
-### No Data Downloaded
-- Verify your API key is correct
-- Check that the study name is correct (use `--list-studies`)
-- Look for error messages in the output
-
-
-## Documentation
-
-- **README.md** (this file) - Main documentation
-- **PROJECT_STRUCTURE.md** - Detailed project structure and module documentation
-- **CLEANUP_SUMMARY.md** - Details of project cleanup and organization
-- **docs/** - Additional documentation
-- **cli_examples.sh** - Example CLI commands
-
-
-## Archive
-
-The `archive/` directory contains:
-- **gui_experiments/** - GUI framework research and experiments
-- **gui_module/** - Original GUI code (preserved for future use)
-- **old_scripts/** - Deprecated test and utility scripts
-
-These files are preserved but not actively used. The focus is on core functionality first.
-
-
-## Future Development
-
-### Completed
-- ✅ Data organization by study/date/event_type
-- ✅ Data organization by user-id
-- ✅ Hierarchical organization (nested folders)
-- ✅ Download tracking and metadata
-- ✅ Incremental downloads
-
-### Near Term
-1. Add data export features (ZIP per study)
-2. Add dataset volume estimation
-3. Implement data exploration and search
-4. Add data quality validation
-5. Extend hierarchical organization to CSV/SQLite backends
-
-### Long Term
-1. Build modern GUI (using research from archive)
-2. Add real-time monitoring features
-3. Implement data visualization
-4. Add collaborative features
-5. Cloud deployment options
+- GUI
 
