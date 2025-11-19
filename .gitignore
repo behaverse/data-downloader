@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+venv_*/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables (contains actual API keys - NEVER COMMIT!)
+.env
+.env.local
+
+# Study configs and settings are now safe to commit
+# They use ${VAR_NAME} references instead of actual keys
+# Actual keys are stored in .env file
+
+# Tests (development only)
+tests/
+
+# Data and logs
+data/
+logs/
+*.log
+
+# Quarto generated files
+docs/_site/
+docs/.quarto/
+docs/*_cache/
+docs/*_files/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archive (if you want to exclude it from git)
+archive/

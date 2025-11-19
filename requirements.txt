@@ -1,0 +1,16 @@
+# Core dependencies for Behaverse Data Manager
+# API and HTTP
+requests>=2.31.0
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Date/time handling
+python-dateutil>=2.8.0
+
+# Optional: Environment variable management
+python-dotenv>=1.0.0
+
+# Development/Build (optional)
+pyinstaller>=5.13.0

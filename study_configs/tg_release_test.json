@@ -1,0 +1,22 @@
+{
+  "study_name": "tg_release_test",
+  "api": {
+    "base_url": "https://api.behaverse.org",
+    "api_key": "${BEHAVERSE_API_KEY_TG_RELEASE_TEST}",
+    "timeout": 30,
+    "max_retries": 3,
+    "retry_delay": 1
+  },
+  "download": {
+    "default_page_size": 1000,
+    "max_concurrent_requests": 3
+  },
+  "storage": {
+    "data_directory": "data",
+    "default_format": "json",
+    "folder_structure": [
+      "by_user_id",
+      "by_date"
+    ]
+  }
+}
