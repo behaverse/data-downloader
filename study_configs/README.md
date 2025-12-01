@@ -23,6 +23,18 @@ Each study config file should have:
 
 ## Creating New Study Configs
 
+**Option 1: Using the CLI (Recommended)**
+
+```bash
+# Create a new study configuration from template
+bdd study create my-new-study
+
+# Then add the API key to .env
+echo "BEHAVERSE_API_KEY_MY_NEW_STUDY=your_key_here" >> .env
+```
+
+**Option 2: Manual Creation**
+
 1. Copy `../settings/config_template.json` to this directory
 2. Rename to `<study-name>.json`
 3. Set the `study_name` field

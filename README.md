@@ -87,18 +87,24 @@ source .venv/bin/activate  # On Linux/Mac
 
 ### Git-Style Commands
 
-The `bdd` CLI follows **git-style naming conventions** for intuitive use:
+The `bdd` CLI follows **git-style naming conventions** with hierarchical commands for intuitive use:
 
 | Command | Git Equivalent | Description |
 |---------|----------------|-------------|
-| `bdd remote` | `git remote` | List available studies from API |
+| `bdd study` | `git branch` | Manage local study configurations (list, create, show) |
+| `bdd remote` | `git remote` | Manage remote API endpoints (list studies, show endpoint) |
+| `bdd config` | `git config` | Manage app-level configuration (storage, cache, defaults) |
 | `bdd status` | `git status` | Show study information and local data status |
 | `bdd log` | `git log` | Show download history |
 | `bdd fetch` | `git fetch` | Check for new events available remotely |
 | `bdd rm` | `git rm` | Delete local study data |
-| `bdd config` | `git config` | List local study configurations |
 
-This design makes the tool familiar to developers and implies functionality without needing extensive documentation.
+**Key concepts:**
+- **study**: Local study configurations (domain objects you work with)
+- **remote**: Remote API endpoints and available datasets
+- **config**: App-level settings (tool configuration, not study metadata)
+
+This design separates domain objects (studies) from tool configuration, making the CLI more intuitive and extensible.
 
 ## CLI Commands
 
@@ -113,25 +119,45 @@ bdd --help
 bdd --version
 ```
 
-### Setup & Configuration
+### Study Management (Local Configurations)
 
 ```bash
-# List all available study config files (shows which have API keys configured)
-bdd config
+# List all local study configurations
+bdd study list
 
-# Create a new study config from template
-bdd create-config my-new-study
-# This creates study_configs/my-new-study.json with ${BEHAVERSE_API_KEY_MY_NEW_STUDY} reference
+# Create a new study configuration from template
+bdd study create my-new-study
+# This creates study_configs/my-new-study.json
+
+# Show details of a study configuration
+bdd study show demo-study
 ```
 
 ### Remote API Operations
 
 ```bash
+# List studies available from remote API
+bdd remote list
+
+# Show remote API endpoint information
+bdd remote show
+
 # Test API connection and authentication
 bdd test-connection
+```
 
-# List all studies available via the API (studies you have access to)
-bdd remote
+### App Configuration
+
+```bash
+# Show app-level configuration
+bdd config show
+
+# Get a specific configuration value
+bdd config get storage.data_directory
+
+# Set a configuration value
+bdd config set storage.data_directory /path/to/data
+bdd config set download.default_page_size 500
 ```
 
 ### Download Data
@@ -175,15 +201,11 @@ bdd rm demo-study
 bdd rm --force demo-study
 ```
 
-### Missing/Planned Commands
+### Planned Features
 
 The following commands would be useful additions:
 
 ```bash
-# Show only remote API information (without querying local data)
-bdd remote-info demo-study
-# Would show: study metadata, total event count from API
-
 # Export data to different format
 bdd export demo-study --format csv --output my-data.csv
 
@@ -214,10 +236,11 @@ The application supports **per-study configuration files**, allowing each study/
 
 #### Creating Study Configs
 
-1. **Automatic creation**: When you use `--config` with a study name that doesn't have a config file, it's created from the template:
+1. **Using the CLI (Recommended)**:
    ```bash
-   bdd --config my-study download my-study
+   bdd study create my-study
    # Creates study_configs/my-study.json from template
+   # Then add API key to .env: BEHAVERSE_API_KEY_MY_STUDY=your_key
    ```
 
 2. **Manual creation**: Copy the template and customize:
@@ -332,15 +355,15 @@ behaverse-data-downloader/
 │   ├── commands/             # Command Pattern implementation
 │   │   ├── __init__.py       # Exports all commands
 │   │   ├── base.py           # BaseCommand abstract class
-│   │   ├── remote.py         # List studies from API
-│   │   ├── config.py         # List local configs
+│   │   ├── study.py          # Manage local study configs (list, create, show)
+│   │   ├── remote.py         # Manage remote API endpoints (list, show)
+│   │   ├── config.py         # Manage app-level configuration (show, get, set)
 │   │   ├── status.py         # Show study info
 │   │   ├── log.py            # Show download history
 │   │   ├── download.py       # Download study data
 │   │   ├── fetch.py          # Check for updates
 │   │   ├── rm.py             # Delete study data
-│   │   ├── test_connection.py # Test API connection
-│   │   └── create_config.py  # Create study config
+│   │   └── test_connection.py # Test API connection
 │   ├── api/                  # API client modules
 │   │   ├── __init__.py
 │   │   └── client.py         # BehaverseAPIClient & EventData
@@ -350,9 +373,12 @@ behaverse-data-downloader/
 │   └── downloader/           # Download management
 │       ├── __init__.py
 │       └── manager.py        # DownloadManager with pause/resume
-├── settings/                 # Templates and default config
+├── settings/                 # Template and default app configuration
+│   ├── config_template.json  # Template for new study configs
+│   └── default_config.json   # Default app-level settings
 ├── study_configs/            # Study-specific configurations
-│   └── default_config.json   # Default settings
+│   ├── demo-study.json       # Example study config
+│   └── README.md             # Study config documentation
 ├── data/                     # Downloaded data (auto-created)
 ├── tests/                    # Test files
 │   ├── test_core_functionality.py

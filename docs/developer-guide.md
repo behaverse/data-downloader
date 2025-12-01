@@ -19,15 +19,15 @@ behaverse_data_downloader/
 ├── commands/
 │   ├── __init__.py          # Exports all commands
 │   ├── base.py              # BaseCommand abstract class
-│   ├── remote.py            # List studies from API
-│   ├── config.py            # List local configs
+│   ├── study.py             # Manage local study configs (list, create, show)
+│   ├── remote.py            # Manage remote API endpoints (list, show)
+│   ├── config.py            # Manage app-level configuration (show, get, set)
 │   ├── status.py            # Show study info
 │   ├── log.py               # Show download history
 │   ├── download.py          # Download study data
 │   ├── fetch.py             # Check for updates
 │   ├── rm.py                # Delete study data
-│   ├── test_connection.py  # Test API connection
-│   └── create_config.py     # Create study config
+│   └── test_connection.py   # Test API connection
 ```
 
 ## BaseCommand Interface
@@ -262,6 +262,95 @@ class PullCommand(BaseCommand):
             print(f"✗ Download failed: {download_result['message']}")
             return 1
 ```
+
+### Example 4: Hierarchical Command with Subcommands
+
+```python
+"""Study Command - Manage local study configurations"""
+
+from argparse import ArgumentParser, Namespace
+from typing import Optional
+from .base import BaseCommand
+from ..manager import BehaverseDataDownloader
+
+
+class StudyCommand(BaseCommand):
+    """Manage local study configurations"""
+    
+    @property
+    def name(self) -> str:
+        return 'study'
+    
+    @property
+    def help(self) -> str:
+        return 'Manage local study configurations'
+    
+    def add_arguments(self, parser: ArgumentParser) -> None:
+        # Create subparsers for hierarchical commands
+        subparsers = parser.add_subparsers(dest='study_subcommand', help='Study operations')
+        
+        # study list - List all local study configs
+        list_parser = subparsers.add_parser('list', help='List all local study configurations')
+        
+        # study create - Create new study config
+        create_parser = subparsers.add_parser('create', help='Create new study configuration')
+        create_parser.add_argument('name', help='Study name')
+        
+        # study show - Show study details
+        show_parser = subparsers.add_parser('show', help='Show study configuration details')
+        show_parser.add_argument('name', help='Study name')
+    
+    def requires_downloader(self) -> bool:
+        return False
+    
+    def execute(self, args: Namespace, downloader: Optional[BehaverseDataDownloader]) -> int:
+        subcommand = args.study_subcommand
+        
+        if not subcommand:
+            print("Error: study command requires a subcommand (list, create, show)")
+            return 1
+        
+        if subcommand == 'list':
+            return self._list_studies()
+        elif subcommand == 'create':
+            return self._create_study(args.name)
+        elif subcommand == 'show':
+            return self._show_study(args.name)
+        else:
+            print(f"Unknown subcommand: {subcommand}")
+            return 1
+    
+    def _list_studies(self) -> int:
+        """List all local study configurations"""
+        # Implementation here
+        print("Listing local studies...")
+        return 0
+    
+    def _create_study(self, study_name: str) -> int:
+        """Create new study configuration"""
+        # Implementation here
+        print(f"Creating study: {study_name}")
+        return 0
+    
+    def _show_study(self, study_name: str) -> int:
+        """Show study configuration details"""
+        # Implementation here
+        print(f"Showing study: {study_name}")
+        return 0
+```
+
+**Usage:**
+```bash
+bdd study list
+bdd study create my-study
+bdd study show demo-study
+```
+
+**Key Points:**
+- Use `add_subparsers()` in `add_arguments()` to create hierarchical structure
+- Store subcommand in a dedicated destination like `study_subcommand`
+- Implement private methods (prefixed with `_`) for each subcommand
+- Provide clear error messages if no subcommand specified
 
 ## Best Practices
 

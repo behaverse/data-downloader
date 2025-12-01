@@ -6,6 +6,7 @@ Each command is implemented in its own module.
 """
 
 from .base import BaseCommand
+from .study import StudyCommand
 from .remote import RemoteCommand
 from .config import ConfigCommand
 from .status import StatusCommand
@@ -14,10 +15,10 @@ from .download import DownloadCommand
 from .fetch import FetchCommand
 from .rm import RmCommand
 from .test_connection import TestConnectionCommand
-from .create_config import CreateConfigCommand
 
 __all__ = [
     'BaseCommand',
+    'StudyCommand',
     'RemoteCommand',
     'ConfigCommand',
     'StatusCommand',
@@ -26,5 +27,4 @@ __all__ = [
     'FetchCommand',
     'RmCommand',
     'TestConnectionCommand',
-    'CreateConfigCommand',
 ]

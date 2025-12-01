@@ -7,7 +7,7 @@ This directory contains template and default configuration files for the Behaver
 ### `config_template.json`
 Template used when creating new study-specific configuration files. This is the blueprint that gets copied when you create a new study config.
 
-**Usage:** Copy this file to `../study_configs/<study-name>.json` and customize as needed.
+**Usage:** Run `bdd study create <study-name>` to automatically create a new study config from this template, or manually copy this file to `../study_configs/<study-name>.json` and customize as needed.
 
 ### `default_config.json`
 Default/fallback configuration used when no study-specific config exists. This file contains:

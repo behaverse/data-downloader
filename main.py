@@ -21,6 +21,7 @@ sys.path.insert(0, str(package_dir))
 from behaverse_data_downloader.manager import BehaverseDataDownloader
 from behaverse_data_downloader.commands import (
     BaseCommand,
+    StudyCommand,
     RemoteCommand,
     ConfigCommand,
     StatusCommand,
@@ -29,7 +30,6 @@ from behaverse_data_downloader.commands import (
     FetchCommand,
     RmCommand,
     TestConnectionCommand,
-    CreateConfigCommand,
 )
 
 
@@ -41,6 +41,7 @@ def get_available_commands() -> List[BaseCommand]:
     To add a new command, simply import it above and add it to this list.
     """
     return [
+        StudyCommand(),
         RemoteCommand(),
         ConfigCommand(),
         StatusCommand(),
@@ -49,7 +50,6 @@ def get_available_commands() -> List[BaseCommand]:
         FetchCommand(),
         RmCommand(),
         TestConnectionCommand(),
-        CreateConfigCommand(),
     ]
 
 
@@ -85,38 +85,35 @@ Examples:
   # Show help
   bdd help
   
-  # List available studies from API (git-style: like 'git remote')
-  bdd remote
+  # Study management (local configurations)
+  bdd study list                    # List local study configs
+  bdd study create my-study         # Create new study config
+  bdd study show demo-study         # Show study config details
   
-  # Download a study (incremental by default)
-  bdd download demo-study
+  # Remote API management
+  bdd remote list                   # List studies from remote API
+  bdd remote show                   # Show remote endpoint info
   
-  # Download from scratch (ignore local data)
-  bdd download demo-study --fresh
+  # App configuration
+  bdd config show                   # Show app settings
+  bdd config get storage.data_directory    # Get specific setting
+  bdd config set storage.data_directory data  # Set a setting
   
-  # Show study information (git-style: like 'git status')
-  bdd status demo-study
+  # Download operations
+  bdd download demo-study           # Download study (incremental)
+  bdd download demo-study --fresh   # Download from scratch
   
-  # Show download history (git-style: like 'git log')
-  bdd log demo-study
+  # Study information
+  bdd status demo-study             # Show study status
+  bdd log demo-study                # Show download history
+  bdd fetch demo-study              # Check for new events
   
-  # Test API connection
-  bdd test-connection
-  
-  # Check for new events available (git-style: like 'git fetch')
-  bdd fetch demo-study
-  
-  # Delete local study data (git-style: like 'git rm')
-  bdd rm demo-study
-  
-  # List local config files (git-style: like 'git config')
-  bdd config
-  
-  # Create new study config
-  bdd create-config my-study
+  # Other operations
+  bdd test-connection               # Test API connection
+  bdd rm demo-study                 # Delete local study data
 
-Note: Command names follow git-style conventions for familiarity and ease of use.
-      You can also use 'python main.py' or 'behaverse-data-downloader' instead of 'bdd'.
+Note: Commands follow git-style conventions. 'study' manages local configs,
+      'remote' manages API endpoints, 'config' manages app settings.
         """
     )
     
