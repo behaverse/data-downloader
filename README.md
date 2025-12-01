@@ -26,6 +26,23 @@ The Behaverse Data Downloader simplifies the process of downloading data via the
 
 The CLI follows **git-style command naming** for familiarity and ease of use. Commands use verbs and patterns inspired by git (e.g., `status`, `log`, `fetch`, `rm`) to make the tool intuitive for developers already familiar with version control systems.
 
+#### Command Pattern Architecture
+
+The codebase uses the **Command Pattern** for extensibility and maintainability:
+
+- **One file per command**: Each CLI command is implemented in its own module under `behaverse_data_downloader/commands/`
+- **Auto-discovery**: Commands are automatically registered at startup
+- **Consistent interface**: All commands inherit from `BaseCommand` with standardized methods
+- **Easy extensibility**: Add new commands by creating a new file and importing it in `commands/__init__.py`
+- **Plugin support**: Future support for third-party command plugins
+- **Hierarchical commands**: Framework supports composite commands (e.g., `push=fetch+merge`)
+
+**Adding a new command:**
+1. Create `behaverse_data_downloader/commands/mycommand.py`
+2. Inherit from `BaseCommand` and implement required methods
+3. Import your command in `behaverse_data_downloader/commands/__init__.py`
+4. Add to the list in `get_available_commands()` in `main.py`
+
 
 
 
@@ -311,6 +328,19 @@ behaverse-data-downloader/
 ├── behaverse_data_downloader/ # Main package
 │   ├── __init__.py           # Package initialization
 │   ├── manager.py            # Main downloader class (orchestrates everything)
+│   ├── cli.py                # CLI entry point wrapper
+│   ├── commands/             # Command Pattern implementation
+│   │   ├── __init__.py       # Exports all commands
+│   │   ├── base.py           # BaseCommand abstract class
+│   │   ├── remote.py         # List studies from API
+│   │   ├── config.py         # List local configs
+│   │   ├── status.py         # Show study info
+│   │   ├── log.py            # Show download history
+│   │   ├── download.py       # Download study data
+│   │   ├── fetch.py          # Check for updates
+│   │   ├── rm.py             # Delete study data
+│   │   ├── test_connection.py # Test API connection
+│   │   └── create_config.py  # Create study config
 │   ├── api/                  # API client modules
 │   │   ├── __init__.py
 │   │   └── client.py         # BehaverseAPIClient & EventData
@@ -332,7 +362,9 @@ behaverse-data-downloader/
 ├── .env.example             # Example environment file
 ├── requirements.txt         # Python dependencies
 ├── setup.py                 # Package setup
-├── main.py                  # CLI entry point
+├── main.py                  # CLI entry point with command auto-discovery
+├── docs/
+│   └── developer-guide.md   # Guide for adding new commands
 └── README.md                # This file
 ```
 
@@ -394,10 +426,10 @@ Every study folder includes:
 View download information:
 ```bash
 # Show study info
-python main.py --info demo-study
+bdd status demo-study
 
 # Show complete download history
-python main.py --history demo-study
+bdd log demo-study
 ```
 
 See `DATA_ORGANIZATION.md` for detailed documentation on data organization and tracking.

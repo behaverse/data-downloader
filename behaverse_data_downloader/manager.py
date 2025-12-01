@@ -206,7 +206,7 @@ class BehaverseDataDownloader:
     
     def _load_study_config(self, study_name: str) -> Optional[Dict[str, Any]]:
         """Load study-specific configuration file"""
-        study_config_path = Path("config") / f"{study_name}.json"
+        study_config_path = Path("study_configs") / f"{study_name}.json"
         
         if study_config_path.exists():
             try:
@@ -220,7 +220,7 @@ class BehaverseDataDownloader:
     @staticmethod
     def _create_study_config_from_template(study_name: str, api_key: str = "") -> Dict[str, Any]:
         """Create a new study config from template"""
-        template_path = Path("config/config_template.json")
+        template_path = Path("settings/config_template.json")
         
         # Load template
         if template_path.exists():
@@ -255,7 +255,7 @@ class BehaverseDataDownloader:
             config["api"]["api_key"] = api_key
         
         # Save to file
-        study_config_path = Path("config") / f"{study_name}.json"
+        study_config_path = Path("study_configs") / f"{study_name}.json"
         study_config_path.parent.mkdir(parents=True, exist_ok=True)
         
         with open(study_config_path, 'w') as f:

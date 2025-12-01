@@ -4,20 +4,74 @@ Behaverse Data Downloader - Command-Line Interface
 
 Entry point for the Behaverse Data Downloader application.
 Provides CLI interface for downloading and managing Behaverse data.
+
+Uses the Command Pattern for extensibility and maintainability.
 """
 
 import sys
 import os
-import json
 import argparse
 from pathlib import Path
-from typing import Optional
+from typing import List, Dict
 
 # Add the package to Python path
 package_dir = Path(__file__).parent
 sys.path.insert(0, str(package_dir))
 
 from behaverse_data_downloader.manager import BehaverseDataDownloader
+from behaverse_data_downloader.commands import (
+    BaseCommand,
+    RemoteCommand,
+    ConfigCommand,
+    StatusCommand,
+    LogCommand,
+    DownloadCommand,
+    FetchCommand,
+    RmCommand,
+    TestConnectionCommand,
+    CreateConfigCommand,
+)
+
+
+def get_available_commands() -> List[BaseCommand]:
+    """
+    Get all available commands.
+    
+    This function provides auto-discovery of commands.
+    To add a new command, simply import it above and add it to this list.
+    """
+    return [
+        RemoteCommand(),
+        ConfigCommand(),
+        StatusCommand(),
+        LogCommand(),
+        DownloadCommand(),
+        FetchCommand(),
+        RmCommand(),
+        TestConnectionCommand(),
+        CreateConfigCommand(),
+    ]
+
+
+def register_commands(subparsers, commands: List[BaseCommand]) -> Dict[str, BaseCommand]:
+    """
+    Register all commands with the argument parser.
+    
+    Args:
+        subparsers: ArgumentParser subparsers object
+        commands: List of command instances
+    
+    Returns:
+        Dictionary mapping command names to command instances
+    """
+    command_map = {}
+    
+    for cmd in commands:
+        parser = subparsers.add_parser(cmd.name, help=cmd.help)
+        cmd.add_arguments(parser)
+        command_map[cmd.name] = cmd
+    
+    return command_map
 
 
 def main():
@@ -82,45 +136,12 @@ Note: Command names follow git-style conventions for familiarity and ease of use
     # Create subparsers for subcommands
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
-    # help command
+    # help command (special case, not part of command pattern)
     help_parser = subparsers.add_parser('help', help='Show help message')
     
-    # remote command (list available studies)
-    remote_parser = subparsers.add_parser('remote', help='List all studies available from API')
-    
-    # config command (list local configs)
-    config_parser = subparsers.add_parser('config', help='List all local study config files')
-    
-    # download command
-    download_parser = subparsers.add_parser('download', help='Download study data (incremental by default)')
-    download_parser.add_argument('study', help='Study name to download')
-    download_parser.add_argument('--fresh', '-f', action='store_true',
-                                 help='Download all events from scratch (ignore local data)')
-    
-    # status command
-    status_parser = subparsers.add_parser('status', help='Show study information')
-    status_parser.add_argument('study', help='Study name')
-    
-    # log command
-    log_parser = subparsers.add_parser('log', help='Show download history')
-    log_parser.add_argument('study', help='Study name')
-    
-    # test-connection command
-    test_parser = subparsers.add_parser('test-connection', help='Test API connection')
-    
-    # fetch command
-    fetch_parser = subparsers.add_parser('fetch', help='Check for new events available remotely')
-    fetch_parser.add_argument('study', help='Study name')
-    
-    # rm command
-    rm_parser = subparsers.add_parser('rm', help='Delete local study data')
-    rm_parser.add_argument('study', help='Study name')
-    rm_parser.add_argument('--force', '-f', action='store_true',
-                               help='Skip confirmation prompt')
-    
-    # create-config command
-    create_parser = subparsers.add_parser('create-config', help='Create new study config')
-    create_parser.add_argument('study', help='Study name')
+    # Auto-discover and register all commands
+    available_commands = get_available_commands()
+    command_map = register_commands(subparsers, available_commands)
     
     args = parser.parse_args()
     
@@ -134,6 +155,14 @@ Note: Command names follow git-style conventions for familiarity and ease of use
     Path("study_configs").mkdir(parents=True, exist_ok=True)
     
     try:
+        # Get the command instance
+        command = command_map.get(args.command)
+        
+        if not command:
+            # Unknown command, show help
+            parser.print_help()
+            sys.exit(0)
+        
         # Determine which config to use
         study_name = None
         config_path = "settings/default_config.json"
@@ -160,191 +189,14 @@ Note: Command names follow git-style conventions for familiarity and ease of use
                 study_name = target_study
                 print(f"Using study-specific config: {config_path}")
         
-        # Handle commands that don't need downloader initialization
-        if args.command == 'create-config':
-            study_name_arg = args.study
-            config_file = Path(f"study_configs/{study_name_arg}.json")
-            
-            if config_file.exists():
-                print(f"✗ Config file already exists: {config_file}")
-                sys.exit(1)
-            
-            # Create from template
-            BehaverseDataDownloader._create_study_config_from_template(study_name_arg, "")
-            print(f"✓ Created config file: {config_file}")
-            print(f"  Edit the file to add your API key for '{study_name_arg}'")
-            sys.exit(0)
+        # Initialize downloader if command requires it
+        downloader = None
+        if command.requires_downloader():
+            downloader = BehaverseDataDownloader(config_path, study_name)
         
-        elif args.command == 'config':
-            print("Available study config files:")
-            config_dir = Path("study_configs")
-            config_files = sorted(config_dir.glob("*.json"))
-            
-            for config_file in config_files:
-                # Skip template and default
-                if config_file.name in ["config_template.json", "default_config.json"]:
-                    continue
-                
-                study_name_str = config_file.stem
-                
-                # Try to read the config to show API key status
-                key_status = "? unknown"
-                try:
-                    with open(str(config_file), 'r') as f:
-                        import json as json_mod
-                        cfg = json_mod.load(f)
-                        api_key = cfg.get('api', {}).get('api_key', '')
-                        key_status = "✓ has API key" if api_key else "✗ missing API key"
-                except Exception as e:
-                    key_status = f"? error: {type(e).__name__}"
-                
-                print(f"  - {study_name_str:30s} {key_status}")
-            
-            if not config_files:
-                print("  (No study configs found. Use 'bdd create-config STUDY' to create one)")
-            sys.exit(0)
-        
-        # Initialize the downloader for commands that need it
-        downloader = BehaverseDataDownloader(config_path, study_name)
-        
-        # Handle commands that need downloader
-        if args.command == 'test-connection':
-            print("Testing API connection...")
-            if downloader.test_connection():
-                print("✓ Connection successful!")
-            else:
-                print("✗ Connection failed. Check your API key.")
-                sys.exit(1)
-        
-        elif args.command == 'remote':
-            print("Available studies:")
-            studies = downloader.get_studies()
-            for study in studies:
-                print(f"  - {study}")
-        
-        elif args.command == 'status':
-            study_name = args.study
-            print(f"Study: {study_name}")
-            info = downloader.get_study_info(study_name)
-            print(f"  Status: {info['status']}")
-            print(f"  Local events: {info['local_events']}")
-            if info['last_update']:
-                print(f"  Last update: {info['last_update']}")
-        
-        elif args.command == 'log':
-            study_name = args.study
-            print(f"Download history for: {study_name}")
-            
-            # Try to load metadata and history
-            data_dir = downloader.get_data_directory()
-            study_dir = Path(data_dir) / study_name
-            
-            metadata_file = study_dir / ".metadata.json"
-            history_file = study_dir / ".download_history.json"
-            
-            if not study_dir.exists():
-                print(f"  No data found for study '{study_name}'")
-            else:
-                # Show metadata
-                if metadata_file.exists():
-                    import json
-                    with open(metadata_file, 'r') as f:
-                        metadata = json.load(f)
-                    print(f"\nMetadata:")
-                    print(f"  Total events: {metadata.get('total_events', 'unknown')}")
-                    print(f"  First download: {metadata.get('first_download', 'unknown')}")
-                    print(f"  Last updated: {metadata.get('last_updated', 'unknown')}")
-                    print(f"  Storage format: {metadata.get('storage_format', 'unknown')}")
-                
-                # Show download history
-                if history_file.exists():
-                    import json
-                    with open(history_file, 'r') as f:
-                        history = json.load(f)
-                    print(f"\nDownload History ({len(history)} downloads):")
-                    for i, record in enumerate(history, 1):
-                        print(f"  {i}. {record['timestamp']}")
-                        print(f"     Type: {record['download_type']}")
-                        print(f"     Events: {record['events_downloaded']}")
-                else:
-                    print("  No download history found")
-        
-        elif args.command == 'download':
-            study_name = args.study
-            # Incremental is now the default behavior
-            incremental = not (hasattr(args, 'fresh') and args.fresh)
-            
-            print(f"Downloading study: {study_name}")
-            if args.fresh:
-                print("Using fresh download mode (ignoring local data)...")
-            else:
-                print("Using incremental update mode (default)...")
-            
-            def progress_callback(progress):
-                print(f"  Page {progress.get('page', '?')}: "
-                      f"{progress.get('events_in_page', 0)} events "
-                      f"(Total: {progress.get('total_events', 0)})")
-            
-            result = downloader.download_study(
-                study_name, 
-                incremental=incremental,
-                progress_callback=progress_callback
-            )
-            
-            if result['success']:
-                print(f"✓ {result['message']}")
-                if result['save_path']:
-                    print(f"  Saved to: {result['save_path']}")
-            else:
-                print(f"✗ Download failed: {result['message']}")
-                sys.exit(1)
-        
-        elif args.command == 'fetch':
-            study_name = args.study
-            print(f"Checking for updates: {study_name}")
-            
-            result = downloader.check_updates(study_name)
-            
-            if 'error' in result:
-                print(f"✗ Error: {result['error']}")
-                sys.exit(1)
-            
-            print(f"\n  Local events:  {result['local_count']}")
-            print(f"  Remote events: {result['remote_count']}")
-            print(f"  New available: {result['new_events_available']}")
-            
-            if result['has_updates']:
-                print(f"\n✓ Updates available! Run 'bdd download {study_name}' to get new events.")
-            else:
-                print(f"\n✓ No new events available. Local data is up to date.")
-        
-        elif args.command == 'rm':
-            study_name = args.study
-            
-            # Check if data exists
-            data_dir = Path(downloader.get_data_directory())
-            study_dir = data_dir / study_name
-            
-            if not study_dir.exists():
-                print(f"✗ No local data found for study: {study_name}")
-                sys.exit(1)
-            
-            # Confirm deletion unless --force is used
-            if not args.force:
-                response = input(f"Are you sure you want to delete all data for '{study_name}'? [y/N]: ")
-                if response.lower() not in ['y', 'yes']:
-                    print("Deletion cancelled.")
-                    sys.exit(0)
-            
-            result = downloader.delete_study_data(study_name)
-            
-            if result['success']:
-                print(f"✓ {result['message']}")
-                if 'deleted_path' in result:
-                    print(f"  Deleted: {result['deleted_path']}")
-            else:
-                print(f"✗ {result['message']}")
-                sys.exit(1)
+        # Execute the command
+        exit_code = command.execute(args, downloader)
+        sys.exit(exit_code)
         
     except KeyboardInterrupt:
         print("\n\nInterrupted by user. Goodbye!")
