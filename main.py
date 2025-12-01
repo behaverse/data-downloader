@@ -31,8 +31,8 @@ Examples:
   # Show help
   bdd help
   
-  # List available studies from API
-  bdd list-studies
+  # List available studies from API (git-style: like 'git remote')
+  bdd remote
   
   # Download a study (incremental by default)
   bdd download demo-study
@@ -40,28 +40,29 @@ Examples:
   # Download from scratch (ignore local data)
   bdd download demo-study --fresh
   
-  # Show study information
-  bdd info demo-study
+  # Show study information (git-style: like 'git status')
+  bdd status demo-study
   
-  # Show download history
-  bdd history demo-study
+  # Show download history (git-style: like 'git log')
+  bdd log demo-study
   
   # Test API connection
   bdd test-connection
   
-  # Check for new events available
-  bdd check-updates demo-study
+  # Check for new events available (git-style: like 'git fetch')
+  bdd fetch demo-study
   
-  # Delete local study data
-  bdd delete demo-study
+  # Delete local study data (git-style: like 'git rm')
+  bdd rm demo-study
   
-  # List local config files
-  bdd list-configs
+  # List local config files (git-style: like 'git config')
+  bdd config
   
   # Create new study config
   bdd create-config my-study
 
-Note: You can also use 'python main.py' or 'behaverse-data-downloader' instead of 'bdd'.
+Note: Command names follow git-style conventions for familiarity and ease of use.
+      You can also use 'python main.py' or 'behaverse-data-downloader' instead of 'bdd'.
         """
     )
     
@@ -84,9 +85,11 @@ Note: You can also use 'python main.py' or 'behaverse-data-downloader' instead o
     # help command
     help_parser = subparsers.add_parser('help', help='Show help message')
     
-    # list commands
-    list_studies_parser = subparsers.add_parser('list-studies', help='List all studies available from API')
-    list_configs_parser = subparsers.add_parser('list-configs', help='List all local study config files')
+    # remote command (list available studies)
+    remote_parser = subparsers.add_parser('remote', help='List all studies available from API')
+    
+    # config command (list local configs)
+    config_parser = subparsers.add_parser('config', help='List all local study config files')
     
     # download command
     download_parser = subparsers.add_parser('download', help='Download study data (incremental by default)')
@@ -94,25 +97,25 @@ Note: You can also use 'python main.py' or 'behaverse-data-downloader' instead o
     download_parser.add_argument('--fresh', '-f', action='store_true',
                                  help='Download all events from scratch (ignore local data)')
     
-    # info command
-    info_parser = subparsers.add_parser('info', help='Show study information')
-    info_parser.add_argument('study', help='Study name')
+    # status command
+    status_parser = subparsers.add_parser('status', help='Show study information')
+    status_parser.add_argument('study', help='Study name')
     
-    # history command
-    history_parser = subparsers.add_parser('history', help='Show download history')
-    history_parser.add_argument('study', help='Study name')
+    # log command
+    log_parser = subparsers.add_parser('log', help='Show download history')
+    log_parser.add_argument('study', help='Study name')
     
     # test-connection command
     test_parser = subparsers.add_parser('test-connection', help='Test API connection')
     
-    # check-updates command
-    check_updates_parser = subparsers.add_parser('check-updates', help='Check for new events available remotely')
-    check_updates_parser.add_argument('study', help='Study name')
+    # fetch command
+    fetch_parser = subparsers.add_parser('fetch', help='Check for new events available remotely')
+    fetch_parser.add_argument('study', help='Study name')
     
-    # delete command
-    delete_parser = subparsers.add_parser('delete', help='Delete local study data')
-    delete_parser.add_argument('study', help='Study name')
-    delete_parser.add_argument('--force', '-f', action='store_true',
+    # rm command
+    rm_parser = subparsers.add_parser('rm', help='Delete local study data')
+    rm_parser.add_argument('study', help='Study name')
+    rm_parser.add_argument('--force', '-f', action='store_true',
                                help='Skip confirmation prompt')
     
     # create-config command
@@ -172,7 +175,7 @@ Note: You can also use 'python main.py' or 'behaverse-data-downloader' instead o
             print(f"  Edit the file to add your API key for '{study_name_arg}'")
             sys.exit(0)
         
-        elif args.command == 'list-configs':
+        elif args.command == 'config':
             print("Available study config files:")
             config_dir = Path("study_configs")
             config_files = sorted(config_dir.glob("*.json"))
@@ -213,13 +216,13 @@ Note: You can also use 'python main.py' or 'behaverse-data-downloader' instead o
                 print("✗ Connection failed. Check your API key.")
                 sys.exit(1)
         
-        elif args.command == 'list-studies':
+        elif args.command == 'remote':
             print("Available studies:")
             studies = downloader.get_studies()
             for study in studies:
                 print(f"  - {study}")
         
-        elif args.command == 'info':
+        elif args.command == 'status':
             study_name = args.study
             print(f"Study: {study_name}")
             info = downloader.get_study_info(study_name)
@@ -228,7 +231,7 @@ Note: You can also use 'python main.py' or 'behaverse-data-downloader' instead o
             if info['last_update']:
                 print(f"  Last update: {info['last_update']}")
         
-        elif args.command == 'history':
+        elif args.command == 'log':
             study_name = args.study
             print(f"Download history for: {study_name}")
             
@@ -296,7 +299,7 @@ Note: You can also use 'python main.py' or 'behaverse-data-downloader' instead o
                 print(f"✗ Download failed: {result['message']}")
                 sys.exit(1)
         
-        elif args.command == 'check-updates':
+        elif args.command == 'fetch':
             study_name = args.study
             print(f"Checking for updates: {study_name}")
             
@@ -315,7 +318,7 @@ Note: You can also use 'python main.py' or 'behaverse-data-downloader' instead o
             else:
                 print(f"\n✓ No new events available. Local data is up to date.")
         
-        elif args.command == 'delete':
+        elif args.command == 'rm':
             study_name = args.study
             
             # Check if data exists

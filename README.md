@@ -22,6 +22,10 @@ The Behaverse Data Downloader simplifies the process of downloading data via the
  - Providing progress tracking and time estimates
  - Supporting multiple datasets with dataset-specific API keys
 
+### Design Philosophy
+
+The CLI follows **git-style command naming** for familiarity and ease of use. Commands use verbs and patterns inspired by git (e.g., `status`, `log`, `fetch`, `rm`) to make the tool intuitive for developers already familiar with version control systems.
+
 
 
 
@@ -64,6 +68,20 @@ source .venv/bin/activate  # On Linux/Mac
 
 ## Command Line Interface (CLI)
 
+### Git-Style Commands
+
+The `bdd` CLI follows **git-style naming conventions** for intuitive use:
+
+| Command | Git Equivalent | Description |
+|---------|----------------|-------------|
+| `bdd remote` | `git remote` | List available studies from API |
+| `bdd status` | `git status` | Show study information and local data status |
+| `bdd log` | `git log` | Show download history |
+| `bdd fetch` | `git fetch` | Check for new events available remotely |
+| `bdd rm` | `git rm` | Delete local study data |
+| `bdd config` | `git config` | List local study configurations |
+
+This design makes the tool familiar to developers and implies functionality without needing extensive documentation.
 
 ## CLI Commands
 
@@ -82,7 +100,7 @@ bdd --version
 
 ```bash
 # List all available study config files (shows which have API keys configured)
-bdd list-configs
+bdd config
 
 # Create a new study config from template
 bdd create-config my-new-study
@@ -96,7 +114,7 @@ bdd create-config my-new-study
 bdd test-connection
 
 # List all studies available via the API (studies you have access to)
-bdd list-studies
+bdd remote
 ```
 
 ### Download Data
@@ -121,23 +139,23 @@ bdd --config demo-study download demo-study
 
 ```bash
 # Show download history for a study (timestamps, event counts, download types)
-bdd history demo-study
+bdd log demo-study
 
 # Show information about local data (event counts, last update, storage location)
-bdd info demo-study
+bdd status demo-study
 ```
 
 ### Data Management
 
 ```bash
 # Check for new events available remotely
-bdd check-updates demo-study
+bdd fetch demo-study
 
 # Delete local study data (with confirmation)
-bdd delete demo-study
+bdd rm demo-study
 
 # Delete without confirmation prompt
-bdd delete demo-study --force
+bdd rm --force demo-study
 ```
 
 ### Missing/Planned Commands
