@@ -46,6 +46,11 @@ venv_*/
 # Tests (development only)
 tests/
 
+# Study configs - ignore all except demo-study.json and README.md
+study_configs/*
+!study_configs/README.md
+!study_configs/demo-study.json
+
 # Data and logs
 data/
 logs/

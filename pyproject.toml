@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "behaverse-data-downloader"
+dynamic = ["version"]
+description = "Python application for downloading and managing data from the Behaverse API"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+authors = [
+    { name = "Behaverse", email = "pedro@xcit.org" },
+]
+keywords = [
+    "api",
+    "behaverse",
+    "data",
+    "download",
+    "downloader",
+    "research",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "python-dateutil>=2.8.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
+]
+
+[project.scripts]
+bdd = "behaverse_data_downloader.cli:main"
+
+[project.urls]
+"Bug Reports" = "https://github.com/behaverse/data-downloader/issues"
+Documentation = "https://github.com/behaverse/data-downloader"
+Homepage = "https://github.com/behaverse/data-downloader"
+Source = "https://github.com/behaverse/data-downloader"
+
+[tool.hatch.version]
+path = "behaverse_data_downloader/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/behaverse_data_downloader",
+]

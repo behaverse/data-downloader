@@ -201,7 +201,7 @@ Note: Commands follow git-style conventions. 'study' manages local configs,
     except ImportError as e:
         print(f"Import error: {e}")
         print("Please ensure all dependencies are installed:")
-        print("  pip install -r requirements.txt")
+        print("  pip install -e .")
         sys.exit(1)
     except Exception as e:
         print(f"Error: {e}")

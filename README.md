@@ -58,15 +58,15 @@ The codebase uses the **Command Pattern** for extensibility and maintainability:
    # or
    .venv\Scripts\activate     # On Windows
    ```
-3. **Install dependencies**:
+3. **Install the package** (this will install all dependencies):
    ```bash
-   pip install -r requirements.txt
-   ```
-4. **Install the package** (to enable the `bdd` command):
-   ```bash
+   # Using uv (recommended)
+   uv pip install -e .
+   
+   # Or using pip
    pip install -e .
    ```
-5. **Configure your API key**:
+4. **Configure your API key**:
    ```bash
    cp .env.example .env
    # Edit .env and add your Behaverse API key
@@ -200,6 +200,75 @@ bdd rm demo-study
 # Delete without confirmation prompt
 bdd rm --force demo-study
 ```
+
+### Manual Testing
+
+To verify that `bdd` is working correctly, run these commands in sequence:
+
+```bash
+# 1. Test API connection
+bdd test-connection
+# Expected: "Connection successful" or connection status
+
+# 2. List available studies from remote API
+bdd remote list
+# Expected: List of studies available via API
+
+# 3. List local study configurations
+bdd study list
+# Expected: List of study config files in study_configs/
+
+# 4. Show remote endpoint information
+bdd remote show
+# Expected: API endpoint URL and connection details
+
+# 5. Check current app configuration
+bdd config show
+# Expected: Display current app settings (storage, download options)
+
+# 6. Clean slate - remove any existing demo-study data
+bdd rm demo-study --force
+# Expected: Deletes data/demo-study/ directory (if exists)
+
+# 7. Download demo-study data (incremental)
+bdd download demo-study
+# Expected: Downloads events, shows progress, reports count
+
+# 8. Check local study status
+bdd status demo-study
+# Expected: Shows local event count, last update timestamp, storage location
+
+# 9. View download history
+bdd log demo-study
+# Expected: Shows download history with timestamps and event counts
+
+# 10. Check for new events without downloading
+bdd fetch demo-study
+# Expected: Reports new events available (or "up to date")
+
+# 11. Download again (should be incremental - only new events)
+bdd download demo-study
+# Expected: Downloads only new events since last download (may be 0)
+
+# 12. Fresh download (re-download everything)
+bdd download demo-study --fresh
+# Expected: Re-downloads all events from scratch
+
+# 13. Verify data directory structure
+ls -la data/demo-study/
+# Expected: Shows downloaded data files
+
+# 14. Clean up test data
+bdd rm demo-study
+# Expected: Prompts for confirmation, then deletes data
+```
+
+**Expected outcomes:**
+- All commands should complete without errors
+- Download commands should show progress bars and event counts
+- Status should reflect the actual local data
+- Fresh download should have higher event count than incremental
+- rm command should successfully delete the data directory
 
 ### Planned Features
 
@@ -386,8 +455,9 @@ behaverse-data-downloader/
 │   └── test_dataset_api_keys.py
 ├── .env                      # Environment variables (create from .env.example)
 ├── .env.example             # Example environment file
-├── requirements.txt         # Python dependencies
-├── setup.py                 # Package setup
+├── pyproject.toml           # Project configuration and dependencies
+├── uv.lock                  # Dependency lock file
+├── LICENSE                  # Apache 2.0 License
 ├── main.py                  # CLI entry point with command auto-discovery
 ├── docs/
 │   └── developer-guide.md   # Guide for adding new commands
