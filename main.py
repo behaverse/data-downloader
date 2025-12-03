@@ -18,6 +18,8 @@ from typing import List, Dict
 package_dir = Path(__file__).parent
 sys.path.insert(0, str(package_dir))
 
+from behaverse_data_downloader import __version__
+
 from behaverse_data_downloader.manager import BehaverseDataDownloader
 from behaverse_data_downloader.commands import (
     BaseCommand,
@@ -127,7 +129,7 @@ Note: Commands follow git-style conventions. 'study' manages local configs,
     parser.add_argument(
         '--version', '-v',
         action='version',
-        version='%(prog)s 1.0.0'
+        version=f'%(prog)s {__version__}'
     )
     
     # Create subparsers for subcommands

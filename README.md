@@ -7,7 +7,17 @@ The Behaverse Data Downloader has three interfaces:
 - a programmatic API for integration into Python applications.
 - a graphic user interface (GUI) implemented in electron
 
+## Versioning
 
+We use **Calendar Versioning (CalVer)** with the format: `vYY.MMDD[.dev#]`
+
+- **Stable releases**: `v25.1202` (December 2, 2025)
+- **Development versions**: `v25.1202.dev2` (second dev iteration on that date)
+
+Check your version:
+```bash
+bdd --version
+```
 
 ## About
 
